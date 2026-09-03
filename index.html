@@ -3,489 +3,208 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<title>VizoCut V29 — Export Duration Fix</title>
+<title>VizoCut</title>
 <style>
-*{box-sizing:border-box;-webkit-tap-highlight-color:transparent}html{scroll-behavior:smooth}body{margin:0;background:radial-gradient(circle at top,#17172a,#09090f 48%);background-attachment:fixed;color:#fff;font-family:system-ui,-apple-system,Segoe UI,sans-serif}
-button,input{font:inherit}body,button,.tool,.status,.logo,.panelTitle,.section h3,.section label,.section b,.empty{-webkit-user-select:none;user-select:none}input,textarea{-webkit-user-select:text;user-select:text}button{border:0;color:#fff;background:#191923;border-radius:12px;padding:10px 12px;cursor:pointer}
-.app{max-width:1180px;margin:auto;min-height:100vh;display:flex;flex-direction:column}
-.top{height:64px;backdrop-filter:blur(16px);display:flex;align-items:center;justify-content:space-between;padding:8px 14px;border-bottom:1px solid #292934;position:sticky;top:0;background:#0b0b10;z-index:5}
-.logo{font-weight:800;font-size:21px}.logo b{color:#8d5cff}.top button{background:#8d5cff;font-weight:700}
-.main{display:grid;grid-template-columns:minmax(0,1fr) 340px;gap:14px;padding:14px;flex:1}
-.preview{background:linear-gradient(145deg,#050507,#10101a);box-shadow:inset 0 0 80px #000;border:1px solid #292934;border-radius:16px;display:flex;align-items:center;justify-content:center;min-height:430px;position:relative;overflow:hidden}
-canvas{max-width:100%;max-height:72vh;width:auto;height:auto;display:block;object-fit:contain}.empty{position:absolute;text-align:center;color:#a9a9b5}.empty strong{display:block;font-size:22px;margin-bottom:7px}
-.panel{background:#111118;border:1px solid #292934;border-radius:16px;padding:12px;overflow:auto}.panelHead{display:none;align-items:center;gap:10px;margin-bottom:10px;padding-bottom:9px;border-bottom:1px solid #292934}.panelHead.show{display:flex}.backBtn{flex:0 0 auto;background:#242431;border:1px solid #343445;font-weight:800;padding:10px 14px;min-width:112px;position:static}.panelTitle{font-weight:800;color:#e9e9f0}
-.panel h3{margin:5px 0 10px;font-size:15px}.row{display:flex;gap:8px;align-items:center;margin:8px 0}.row>*{flex:1}
-input[type=range]{width:100%}.value{color:#aaa;font-size:12px;text-align:right}
-.tools{grid-column:1/-1;display:flex;gap:9px;overflow:auto;padding:4px 2px 8px;scrollbar-width:none}.tools::-webkit-scrollbar{display:none}
-.tool{min-width:78px;text-align:center;background:#15151d;border:1px solid #292934;transition:.18s transform,.18s background}.tool:active{transform:scale(.96)}.tool.active{background:#8d5cff;border-color:#a98aff}.tool span{display:block;font-size:20px;margin-bottom:3px}.tool small{font-size:11px}
-.section{display:none}.section.active{display:block}
-.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px}.filter{height:65px;font-size:11px}.filter.active{outline:2px solid #8d5cff}
-.timeline{grid-column:1/-1;background:#111118;box-shadow:0 14px 40px #0004;border:1px solid #292934;border-radius:16px;padding:10px}
-.track{height:82px;background:#09090d;border-radius:10px;position:relative;overflow:hidden}.playhead{position:absolute;top:0;bottom:0;width:2px;background:#fff;left:0}
-.thumbs{display:flex;height:100%;opacity:.8}.thumb{flex:1;background:linear-gradient(135deg,#5c4a8a,#242438 48%,#11111a);border-right:1px solid #333}
-.status{font-size:12px;color:#a8a8b4;margin-top:7px}
-label{font-size:12px;color:#c7c7d0}.danger{background:#3a1b20}.primary{background:#8d5cff}.sub{background:#242431}
-.modal{position:fixed;inset:0;background:#000b;display:none;align-items:end;justify-content:center;z-index:20}.modal.show{display:flex}.sheet{width:min(680px,100%);background:#14141c;border:1px solid #30303b;border-radius:20px 20px 0 0;padding:16px;max-height:80vh;overflow:auto}.sheet h2{margin:0 0 12px}
-audio{width:100%;margin-top:8px}
-@media(max-width:800px){
-  /* V18 compact mobile editor: preview + tools stay visible without covering each other. */
-  .top{height:54px;padding:5px 8px}.logo{font-size:18px}.top button{padding:7px 8px;font-size:12px}
-  .main{grid-template-columns:1fr;padding:6px;gap:6px}
-  .preview{grid-column:1;position:sticky;top:54px;z-index:10;min-height:145px;height:20vh;max-height:175px;border-radius:14px;background:#050507}
-  canvas{max-height:165px;max-width:100%;width:auto;height:auto}
-  .empty strong{font-size:16px}.empty{font-size:11px;padding:10px}
-  .tools{grid-column:1;position:sticky;top:229px;bottom:auto;z-index:9;background:#0b0b10;padding:5px 2px 7px;margin:0 -2px;gap:7px;border-bottom:1px solid #252532}
-  .tool{min-width:68px;padding:7px 5px;border-radius:14px}.tool span{font-size:17px}.tool small{font-size:10px}
-  .panel{grid-column:1;border-radius:16px;padding:10px;overflow:visible}\n  .panelHead.show{display:flex;position:static;top:auto;left:auto;right:auto}\n  .panelHead.show + .section{margin-top:0}.panelHead{position:static;z-index:auto;background:#111118;padding:5px 0 10px;margin:0 0 8px;border-bottom:1px solid #292934}
-  .timeline{grid-column:1}.sheet{border-radius:20px 20px 0 0}
-  .textComposer{gap:8px}.textInputBox{padding:11px;font-size:16px}.textQuick{gap:6px}.textQuick button{padding:9px 4px;font-size:11px}
-  .textOptions{padding:8px}.fontChip{min-width:92px;height:48px;border-radius:12px;font-size:14px}.fontTabs{gap:6px;padding:3px 0 5px}
-  .colorDot{width:26px;height:26px}.row{margin:6px 0;gap:6px}.row button{padding:9px 7px}
-  .grid{gap:6px}.filter{height:52px}.section h3{margin:3px 0 7px}
-}
-
-.textComposer{display:flex;flex-direction:column;gap:12px}
-.textInputBox{width:100%;padding:14px;border-radius:14px;border:1px solid #343445;background:#09090d;color:#fff;font-size:17px}
-.textQuick{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
-.textQuick button{padding:12px 6px;font-size:12px;background:#20202b;border:1px solid #30303d}
-.textQuick button.active{background:#8d5cff;border-color:#b49aff}
-.fontTabs{display:flex;gap:8px;overflow:auto;padding:4px 0 8px;scrollbar-width:none}
-.fontTabs::-webkit-scrollbar{display:none}
-.fontChip{min-width:110px;height:58px;background:#171720;border:1px solid #30303d;border-radius:14px;padding:8px;color:#fff}
-.fontChip.active{outline:2px solid #8d5cff;background:#221b36}
-.textOptions{background:#0d0d14;border:1px solid #292934;border-radius:14px;padding:10px}
-.colorDots{display:flex;gap:9px;flex-wrap:wrap}.colorDot{width:30px;height:30px;border-radius:50%;border:3px solid #222;cursor:pointer}.colorDot.active{outline:2px solid #fff}
-
-/* Mobile-only WebView layout */
-.desktopNotice{display:none}
-@media (min-width:801px){
-  .app{display:none!important}
-  .desktopNotice{display:flex;min-height:100vh;align-items:center;justify-content:center;padding:24px;text-align:center;background:#09090f;color:#fff}
-  .desktopNotice .box{max-width:420px;padding:28px;border:1px solid #30303b;border-radius:20px;background:#12121a}
-  .desktopNotice h1{margin:0 0 10px;font-size:24px}
-  .desktopNotice p{margin:0;color:#b8b8c4;line-height:1.5}
-}
-@media (max-width:800px){
-  html,body{width:100%;max-width:100%;overflow-x:hidden}
-  body{background:#09090f}
-  .app{width:100%;max-width:100%;margin:0;min-height:100dvh}
-  .top{position:sticky;top:0;width:100%;padding-top:max(5px,env(safe-area-inset-top));height:calc(54px + env(safe-area-inset-top))}
-  .top>div:last-child{gap:5px;white-space:nowrap}
-  .top button{padding:7px 7px;font-size:11px}
-  .main{width:100%;padding:6px;gap:6px}
-  .preview{width:100%;min-height:135px;height:19dvh;max-height:160px;top:calc(54px + env(safe-area-inset-top));}
-  .tools{width:100%;top:calc(214px + env(safe-area-inset-top));}
-  .panel,.timeline{width:100%}
-}
-
+*{box-sizing:border-box}body{margin:0;background:#090910;color:#fff;font-family:Arial,sans-serif}
+.app{max-width:1100px;margin:auto;padding:10px}.top{display:flex;justify-content:space-between;gap:8px;align-items:center;position:sticky;top:0;background:#090910;padding:8px 0;z-index:5}
+.logo{font-size:24px;font-weight:800}.logo span{color:#9b6cff}button,label.btn{border:0;border-radius:14px;padding:11px 14px;background:#20202c;color:#fff;font-weight:700;cursor:pointer}
+.primary{background:#8d5cff!important}.danger{background:#7b2634!important}.file{display:none}
+.preview{width:100%;min-height:300px;background:#020204;border:1px solid #30303d;border-radius:18px;display:flex;align-items:center;justify-content:center;overflow:hidden;position:relative}
+canvas{max-width:100%;max-height:62vh;display:block}.empty{text-align:center;color:#aaa}.tools{display:flex;gap:8px;overflow:auto;padding:10px 0}.tools button{white-space:nowrap}.tools button.active{background:#8d5cff}
+.panel{background:#12121a;border:1px solid #30303d;border-radius:18px;padding:14px}.section{display:none}.section.active{display:block}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(90px,1fr));gap:8px}.grid button{padding:14px 8px}
+input[type=range]{width:100%}input[type=text]{width:100%;padding:13px;border-radius:12px;border:1px solid #444;background:#08080d;color:#fff;font-size:16px}
+.row{display:flex;gap:8px;flex-wrap:wrap;margin:10px 0}.row>*{flex:1;min-width:120px}.status{color:#aaa;font-size:13px;margin-top:8px}
+label{display:block;margin-top:10px;color:#ddd;font-size:13px}
+@media(max-width:600px){.app{padding:7px}.logo{font-size:20px}.top button,.top label.btn{padding:9px;font-size:12px}.preview{min-height:220px}.tools{position:sticky;top:56px;background:#090910;z-index:4}.panel{padding:10px}}
 </style>
 </head>
 <body>
-<div class="desktopNotice"><div class="box"><h1>📱 VizoCut Mobile Only</h1><p>This editor is designed for Android/iPhone mobile screens. Please open it in a mobile browser or mobile WebView.</p></div></div>
 <div class="app">
-<header class="top"><div class="logo">Vizo<span>Cut</span> <small>V29</small></div><div style="display:flex;gap:8px"><button id="undoBtn" class="sub">↶ Undo</button><button id="importBtn">＋ Add Video</button><button id="exportBtn">⬇ Export</button><input id="videoFile" type="file" accept="video/*" multiple hidden></div></header>
+<div class="top">
+  <div class="logo">Vizo<span>Cut</span> <small>V30</small></div>
+  <div class="row" style="margin:0;flex-wrap:nowrap">
+    <label class="btn primary" for="videoFile">＋ Add Video</label>
+    <button id="exportBtn">⬇ Export</button>
+  </div>
+</div>
 
-<main class="main">
-<div class="preview" id="preview"><div class="empty" id="empty"><strong>🎬 Start editing</strong>Tap <b>＋ Add Video</b> and choose a video from your phone</div><canvas id="canvas"></canvas><video id="video" playsinline preload="auto" style="position:absolute;width:2px;height:2px;opacity:.01;pointer-events:none;left:-10px;top:-10px"></video></div>
+<input class="file" id="videoFile" type="file" accept="video/*">
+<div class="preview">
+  <div class="empty" id="empty"><h2>🎬 Start editing</h2><p>Add a video from your phone or computer</p></div>
+  <canvas id="canvas"></canvas>
+  <video id="video" playsinline preload="metadata" style="display:none"></video>
+</div>
 
 <div class="tools">
-<button class="tool" data-tab="trim"><span>✂️</span><small>Trim</small></button>
-<button class="tool" data-tab="filter"><span>🎨</span><small>Filter</small></button>
-<button class="tool" data-tab="effect"><span>✨</span><small>Effects</small></button>
-<button class="tool" data-tab="music"><span>🎵</span><small>Music</small></button>
-<button class="tool" data-tab="text"><span>🔤</span><small>Text</small></button>
-<button class="tool" data-tab="sticker"><span>😊</span><small>Sticker</small></button>
-<button class="tool" data-tab="adjust"><span>☀️</span><small>Adjust</small></button>
-<button class="tool" data-tab="speed"><span>⏩</span><small>Speed</small></button>
-<button class="tool" data-tab="ratio"><span>▣</span><small>Ratio</small></button>
-<button class="tool" data-tab="transform"><span>↻</span><small>Crop/Rotate</small></button>
-<button class="tool" data-tab="enhance"><span>4K</span><small>Enhance</small></button>
-<button class="tool" data-tab="animate"><span>🪄</span><small>Animation</small></button>
-<button class="tool" data-tab="export"><span>⬇️</span><small>Export</small></button>
+<button class="active" data-tab="trim">✂️ Trim</button>
+<button data-tab="filter">🎨 Filter</button>
+<button data-tab="text">🔤 Text</button>
+<button data-tab="sticker">😊 Sticker</button>
+<button data-tab="adjust">☀️ Adjust</button>
+<button data-tab="transform">↻ Rotate</button>
+<button data-tab="export">⬇️ Export</button>
 </div>
 
-<section class="panel"><div class="panelHead" id="panelHead"><button id="backToEditor" class="backBtn">← Back</button><div class="panelTitle" id="panelTitle">Editor</div></div>
-<div id="trim" class="section active"><h3>✂️ Trim & Preview</h3>
-<div class="row"><button id="play" class="primary">▶ Play</button><button id="stop">■ Stop</button></div>
-<label>Trim start <span id="startV" class="value">0.0s</span></label><input id="start" type="range" min="0" max="1" step=".1" value="0">
-<label>Trim end <span id="endV" class="value">0.0s</span></label><input id="end" type="range" min="0" max="1" step=".1" value="1">
-<div class="status" id="time">0.0 / 0.0s</div></div>
-
-<div id="filter" class="section"><h3>🎨 Filters</h3><div class="grid" id="filters"></div></div>
-<div id="effect" class="section"><h3>✨ Effects</h3><div class="grid" id="effects"></div></div>
-
-<div id="music" class="section"><h3>🎵 Music / Song</h3>
-<button id="songBtn" class="primary">＋ Add Song / Audio</button><input id="songFile" type="file" accept="audio/*" hidden>
-<div id="songName" class="status">No song selected</div><audio id="audio" controls></audio>
-<div class="row"><button id="mute">🔊 Video Sound: ON</button><button id="removeSong" class="danger">Remove Song</button></div>
+<div class="panel">
+<div class="section active" id="trim">
+<h3>✂️ Trim & Preview</h3>
+<div class="row"><button id="play" class="primary">▶ Play</button><button id="pause">⏸ Pause</button><button id="stop">■ Stop</button></div>
+<label>Trim Start <span id="startText">0.0s</span></label><input id="start" type="range" min="0" max="0" step="0.1" value="0">
+<label>Trim End <span id="endText">0.0s</span></label><input id="end" type="range" min="0" max="0" step="0.1" value="0">
+<div class="status" id="timeText">0.0 / 0.0s</div>
 </div>
 
-<div id="text" class="section"><h3>🔤 Text</h3>
-<div class="textComposer">
-<input id="textInput" class="textInputBox" value="" placeholder="Type your text">
-<div class="textQuick">
-<button id="fontToggle">Aa<br><small>FONT</small></button>
-<button id="colorToggle">🌈<br><small>COLOR</small></button>
-<button id="textStyleToggle">✦<br><small>STYLE</small></button>
-<button id="textAnimToggle">↔<br><small>ANIMATION</small></button>
-</div>
-<div id="fontBox" class="textOptions"><b>FONTS</b><div class="fontTabs" id="fontTabs"></div></div>
-<div id="colorBox" class="textOptions" style="display:none"><b>COLOR</b><div class="colorDots" id="colorDots" style="margin-top:10px"></div></div>
-<div id="styleBox" class="textOptions" style="display:none"><b>TEXT STYLE</b><div class="grid" id="textStyles"></div></div>
-<div id="textAnimBox" class="textOptions" style="display:none"><b>TEXT ANIMATION</b><div class="grid" id="textAnimations"></div></div>
-<div class="textOptions"><label>Text size <span id="textSizeTextV" class="value">72px</span></label>
-<input id="textSizeText" type="range" min="20" max="220" value="72">
-<div class="row"><button id="textSmall">A− Small</button><button id="textBig" class="primary">A＋ Big</button></div>
-<div class="row"><button data-textpos="top">Top</button><button data-textpos="center" class="primary">Center</button><button data-textpos="bottom">Bottom</button></div>
-<div class="row"><button id="addText" class="primary">✓ Done</button><button id="clearText">Clear</button></div></div>
-</div></div>
+<div class="section" id="filter"><h3>🎨 Filters</h3>
+<div class="grid" id="filterGrid"></div></div>
 
-<div id="sticker" class="section"><h3>😊 Stickers</h3><div class="grid" id="stickers"></div>
-<div class="status"><b>Touch control:</b> 1 finger = Move • 2 fingers = Pinch করে বড়/ছোট + Rotate • Sticker-এর চারপাশে handles দেখা যাবে।</div>
-<label>Sticker size <span id="stickerSizeV" class="value">100%</span></label><input id="stickerSize" type="range" min="40" max="220" value="100">
-<label>Sticker rotation <span id="stickerRotateV" class="value">0°</span></label><input id="stickerRotate" type="range" min="-180" max="180" value="0">
-<div class="row"><button id="centerSticker">⌖ Center</button><button id="removeSticker" class="danger">🗑 Remove</button></div><div class="status">Tip: Preview-তে sticker-এ এক আঙুলে ধরে সরাও। দুই আঙুল দিয়ে দূরে টানলে বড়, কাছে আনলে ছোট, ঘোরালে rotate হবে।</div></div>
-
-<div id="adjust" class="section"><h3>☀️ Adjust</h3>
-<label>Brightness <span id="brightV" class="value">100%</span></label><input id="bright" type="range" min="50" max="160" value="100">
-<label>Contrast <span id="contrastV" class="value">100%</span></label><input id="contrast" type="range" min="50" max="180" value="100">
-<label>Saturation <span id="satV" class="value">100%</span></label><input id="sat" type="range" min="0" max="180" value="100">
+<div class="section" id="text"><h3>🔤 Add Text</h3>
+<input id="textInput" type="text" placeholder="Type your text">
+<label>Text Size <span id="sizeText">48</span>px</label><input id="textSize" type="range" min="20" max="150" value="48">
+<div class="row"><button data-pos="top">Top</button><button data-pos="center" class="primary">Center</button><button data-pos="bottom">Bottom</button></div>
+<div class="row"><button id="textWhite">White</button><button id="textYellow">Yellow</button><button id="clearText">Clear Text</button></div>
 </div>
 
-<div id="speed" class="section"><h3>⏩ Speed</h3><div class="grid"><button data-speed=".5">0.5×</button><button data-speed="1">1×</button><button data-speed="1.5">1.5×</button><button data-speed="2">2×</button><button data-speed="3">3×</button><button data-speed="4">4×</button></div><div class="row"><label>Volume</label><input id="volume" type="range" min="0" max="1" step=".05" value="1"></div></div>
-
-<div id="ratio" class="section"><h3>▣ Canvas Ratio / Size</h3><p class="status">CapCut-style frame size. Choose the ratio you want before editing/export.</p><div class="grid" id="ratioButtons"></div><div class="status" id="ratioStatus">Original • Keep video size</div></div>
-<div id="transform" class="section"><h3>↻ Crop / Rotate</h3><div class="grid"><button id="rotL">↶ Rotate</button><button id="rotR">↷ Rotate</button><button id="flip">↔ Flip</button><button id="reset" class="danger">Reset</button></div></div>
-<div id="enhance" class="section"><h3>4K ✨ Video Enhance (Preview)</h3><p class="status">Smooth enhancement preview: sharpness, clarity and upscale simulation. Real 4K export requires a video rendering engine.</p><label>Enhance strength <span id="enhanceV" class="value">0%</span></label><input id="enhanceRange" type="range" min="0" max="100" value="0"><div class="row"><button id="enhanceAuto" class="primary">✨ Auto Enhance</button><button id="enhanceOff">Off</button></div></div>
-<div id="animate" class="section"><h3>🪄 Smooth Video Animation</h3><div class="grid" id="animations"></div><label>Animation speed <span id="animSpeedV" class="value">1.0×</span></label><input id="animSpeed" type="range" min=".3" max="2" step=".1" value="1"></div>
-
-<div id="export" class="section"><h3>⬇️ Export & Save</h3><p class="status">Edited export includes Text, Font/Style, Filter, Effects, Sticker, Adjust, Crop/Rotate and Animation. Start with 720p.</p><label>Resolution</label><div class="row"><button data-export-res="720" class="primary">720p</button><button data-export-res="1080">1080p</button><button data-export-res="2160">4K</button></div><label>Quality</label><input id="exportQuality" type="range" min="3" max="18" value="8"><div class="row"><button id="startExport" type="button" class="primary" style="pointer-events:auto;touch-action:manipulation;min-height:54px;font-size:18px">⬇ Export Video</button></div><div id="exportStatus" class="status">Ready. Choose a resolution and tap Export.</div><div id="saveResult" class="textOptions" style="display:none;margin-top:10px"><b>VIDEO READY ✓</b><div class="row" style="margin-top:10px"><button id="saveVideoBtn" class="primary">💾 Save Video</button><button id="shareVideoBtn" class="sub">📤 Share</button></div><a id="downloadLink" href="#" download style="display:block;text-align:center;margin-top:8px;color:#bda8ff">Tap here if Save does not start</a><div class="status">If your browser blocks automatic saving, tap <b>Save Video</b> or <b>Share</b>.</div></div></div>
-</section>
-
-<div class="timeline"><div class="track" id="track"><div class="thumbs"></div><div class="playhead" id="playhead"></div></div><div class="status" id="timelineStatus">Add a video, then use the tools above.</div></div>
-</main>
-
-<footer style="padding:10px 14px;color:#777;font-size:11px;text-align:center">VizoCut V29 • Mobile Only • Duration Fix</footer>
+<div class="section" id="sticker"><h3>😊 Stickers</h3>
+<div class="grid">
+<button data-sticker="😀">😀</button><button data-sticker="❤️">❤️</button><button data-sticker="🔥">🔥</button>
+<button data-sticker="✨">✨</button><button data-sticker="😎">😎</button><button data-sticker="🎉">🎉</button>
+</div>
+<div class="row"><button id="clearSticker" class="danger">Remove Sticker</button></div>
 </div>
 
-<div class="modal" id="modal"><div class="sheet"><h2>🎵 Song</h2><p style="color:#aaa">Choose an audio file from your device. It will play with your preview.</p><button class="primary" id="modalSong">Choose Song</button><button id="closeModal" style="float:right">Close</button></div></div>
+<div class="section" id="adjust"><h3>☀️ Adjust</h3>
+<label>Brightness <span id="brightText">100%</span></label><input id="brightness" type="range" min="50" max="150" value="100">
+<label>Contrast <span id="contrastText">100%</span></label><input id="contrast" type="range" min="50" max="180" value="100">
+<label>Saturation <span id="satText">100%</span></label><input id="saturation" type="range" min="0" max="200" value="100">
+</div>
+
+<div class="section" id="transform"><h3>↻ Transform</h3>
+<div class="row"><button id="rotateL">↶ Rotate Left</button><button id="rotateR">↷ Rotate Right</button><button id="flip">↔ Flip</button><button id="reset">Reset</button></div>
+</div>
+
+<div class="section" id="export"><h3>⬇️ Export Video</h3>
+<p class="status">Export uses your browser/WebView video engine. If your AppCreator24 WebView does not support MediaRecorder, export will show a message instead of crashing.</p>
+<div class="row"><button id="export720" class="primary">720p</button><button id="export480">480p</button></div>
+<button id="startExport" class="primary" style="width:100%;font-size:18px">⬇ Export Video</button>
+<div class="status" id="exportStatus">Ready</div>
+</div>
+</div>
+</div>
 
 <script>
 const $=id=>document.getElementById(id);
-const video=$('video'); let canvas=$('canvas'), ctx=canvas.getContext('2d');
-// V28: multiple video clips + duration + edited export
-let clips=[], currentClip=0;
-// Text stays hidden until the user types or adds text.
-video.muted=false; video.defaultMuted=false; video.volume=1;
-let filter='none', effect='none', rotation=0, flip=1, overlayText='', sticker='', songURL='', startT=0,endT=0, raf, aspectRatio='Original'; let enhance=0, animation='None', animSpeed=1, textStyle='Front', textSize=72, textPos='center', textFont='Arial Black, sans-serif', textColor=null, textAnimation='None', videoStart=0; let stickerX=0,stickerY=.32,stickerScale=1,stickerRotation=0,textX=0,textY=null,dragMode=null,activeTab='trim'; const gesturePointers=new Map(); let pinchStart=null;
+const video=$('video'),canvas=$('canvas'),ctx=canvas.getContext('2d');
+let filter='none',brightness=100,contrast=100,saturation=100,rotation=0,flipX=1;
+let overlayText='',textColor='#fff',textSize=48,textPos='center',sticker='';
+let startT=0,endT=0,exportHeight=720,drawRAF=null;
 
-const filters={
-'Normal':'none','B&W':'grayscale(1)','Sepia':'sepia(1)','Vivid':'saturate(1.7) contrast(1.1)',
-'Warm':'sepia(.25) saturate(1.3)','Cool':'hue-rotate(180deg) saturate(1.15)','Vintage':'sepia(.45) contrast(.9)',
-'Fade':'contrast(.85) brightness(1.08) saturate(.7)','Noir':'grayscale(1) contrast(1.55) brightness(.85)',
-'Dream':'brightness(1.08) saturate(1.15) contrast(.9)','Pop':'saturate(1.9) contrast(1.2)','Purple':'hue-rotate(280deg) saturate(1.3)',
-'Sunset':'sepia(.3) hue-rotate(330deg) saturate(1.35)','Green':'hue-rotate(70deg) saturate(1.35)',
-'Negative':'invert(1)','Soft':'brightness(1.05) contrast(.9) saturate(.85)'
+const filterList={
+'Normal':'none','B&W':'grayscale(1)','Sepia':'sepia(.8)','Vivid':'saturate(1.7) contrast(1.1)',
+'Warm':'sepia(.3) saturate(1.3)','Cool':'hue-rotate(180deg) saturate(1.1)','Vintage':'sepia(.5) contrast(.9)',
+'Pop':'saturate(2) contrast(1.2)','Noir':'grayscale(1) contrast(1.5)','Dream':'brightness(1.1) saturate(1.2)'
 };
-const effects={'None':'none','Glow':'blur(.5px) brightness(1.12) saturate(1.2)','Film':'contrast(1.15) saturate(.85) sepia(.12)',
-'Retro':'sepia(.35) contrast(1.05)','Drama':'contrast(1.45) saturate(.85)','Street':'contrast(1.25) saturate(1.25)',
-'Ice':'hue-rotate(170deg) saturate(.9) brightness(1.08)','Party':'saturate(1.7) contrast(1.1)'};
-const animations={'None':'none','Fade In':'fade','Fade Out':'fadeOut','Zoom In':'zoomIn','Zoom Out':'zoomOut','Slide Left':'slideLeft','Slide Right':'slideRight','Pulse':'pulse','Bounce':'bounce','Shake':'shake','Spin':'spin','Flash':'flash'};
-const textFonts={'Classic':'Arial, sans-serif','Daniel':'cursive','Sans':'Trebuchet MS, sans-serif','PUSAB':'Arial Black, sans-serif','Lobster':'Georgia, serif','Blackout':'Impact, sans-serif','Mono':'monospace','Cinema':'Georgia, serif','Elegant':'Georgia, serif','Handwritten':'cursive','Tech':'monospace','Retro':'Impact, sans-serif','Serif':'Times New Roman, serif','Comic':'Comic Sans MS, cursive'};
-const textColors=['#ffffff','#000000','#ff4d4d','#ff9f1c','#ffd60a','#34c759','#30d5ff','#5e5ce6','#bf5af2','#ff66c4'];
-const textAnimations={'None':'None','Fade':'Fade','Pop':'Pop','Zoom':'Zoom','Bounce':'Bounce','Slide Left':'Slide Left','Slide Right':'Slide Right','Typewriter':'Typewriter','Flicker':'Flicker','Rise':'Rise'};
-const textStyles={'Front':{fill:'#ffffff',stroke:'#000000',shadow:true},'Classic':{fill:'white',stroke:'black',shadow:false},'Neon':{fill:'#70f5ff',stroke:'#163cff',shadow:true},'Cinema':{fill:'#ffe7a3',stroke:'#5b2400',shadow:true},'Bold':{fill:'#fff',stroke:'#000',shadow:true},'Pink Pop':{fill:'#ff71bd',stroke:'#4b0032',shadow:true},'Fire':{fill:'#ffb000',stroke:'#8b0000',shadow:true},'Gold':{fill:'#ffd65a',stroke:'#6b4300',shadow:true},'Ice':{fill:'#dff8ff',stroke:'#1a6d9a',shadow:true},'Outline':{fill:'#ffffff',stroke:'#111111',shadow:false},'Glow':{fill:'#ffffff',stroke:'#8d5cff',shadow:true},'Bubble':{fill:'#ffdc5e',stroke:'#8b3f00',shadow:true},'Royal':{fill:'#d6b4ff',stroke:'#3b146e',shadow:true}};
-const stickers=['❤️','⭐','🔥','✨','😎','😂','🎉','🌈','💯','💖','👑','🎵'];
-const ratios={'Original':null,'9:16':9/16,'16:9':16/9,'1:1':1,'4:5':4/5,'3:4':3/4,'4:3':4/3,'2.35:1':2.35};
-Object.keys(ratios).forEach(name=>{let b=document.createElement('button');b.className='filter';b.textContent=name;if(name==='Original')b.classList.add('active');b.onclick=()=>{aspectRatio=name;document.querySelectorAll('#ratioButtons .filter').forEach(x=>x.classList.remove('active'));b.classList.add('active');$('ratioStatus').textContent=name==='Original'?'Original • Keep video size':name+' • Video will fit and crop inside this frame';draw()};$('ratioButtons').appendChild(b)});
-function makeButtons(obj,parent,callback){Object.keys(obj).forEach(name=>{let b=document.createElement('button');b.className='filter';b.textContent=name;b.onclick=()=>{parent.querySelectorAll('.filter').forEach(x=>x.classList.remove('active'));b.classList.add('active');snapshot();callback(obj[name])};parent.appendChild(b)})}
-makeButtons(filters,$('filters'),v=>{filter=v;draw()});
-makeButtons(effects,$('effects'),v=>{effect=v;draw()});
-makeButtons(animations,$('animations'),v=>{animation=v;videoStart=performance.now();draw()});
-Object.keys(textFonts).forEach(name=>{let b=document.createElement('button');b.className='fontChip';b.textContent=name;b.style.fontFamily=textFonts[name];if(name==='PUSAB')b.classList.add('active');b.onclick=()=>{textFont=textFonts[name];document.querySelectorAll('.fontChip').forEach(x=>x.classList.remove('active'));b.classList.add('active');draw()};$('fontTabs').appendChild(b)});
-textColors.forEach(color=>{let b=document.createElement('button');b.className='colorDot';b.style.background=color;b.onclick=()=>{textColor=color;document.querySelectorAll('.colorDot').forEach(x=>x.classList.remove('active'));b.classList.add('active');draw()};$('colorDots').appendChild(b)});
-Object.keys(textStyles).forEach(name=>{let b=document.createElement('button');b.className='filter';b.textContent=name;if(name===textStyle)b.classList.add('active');b.onclick=()=>{textStyle=name;document.querySelectorAll('#textStyles .filter').forEach(x=>x.classList.remove('active'));b.classList.add('active');draw()};$('textStyles').appendChild(b)});
-Object.keys(textAnimations).forEach(name=>{let b=document.createElement('button');b.className='filter';b.textContent=name;b.onclick=()=>{textAnimation=textAnimations[name];document.querySelectorAll('#textAnimations .filter').forEach(x=>x.classList.remove('active'));b.classList.add('active');videoStart=performance.now();draw()};$('textAnimations').appendChild(b)});
-function toggleTextBox(id){['fontBox','colorBox','styleBox','textAnimBox'].forEach(x=>$(x).style.display=(x===id&&$(x).style.display==='none')?'block':'none')}
-$('fontToggle').onclick=()=>toggleTextBox('fontBox');$('colorToggle').onclick=()=>toggleTextBox('colorBox');$('textStyleToggle').onclick=()=>toggleTextBox('styleBox');$('textAnimToggle').onclick=()=>toggleTextBox('textAnimBox');
-stickers.forEach(s=>{let b=document.createElement('button');b.className='filter';b.textContent=s;b.onclick=()=>{snapshot();sticker=s;stickerX=0;stickerY=.32;stickerScale=1;stickerRotation=0;$('stickerSize').value=100;$('stickerRotate').value=0;$('stickerSizeV').textContent='100%';$('stickerRotateV').textContent='0°';draw()};$('stickers').appendChild(b)});
+for(const [name,val] of Object.entries(filterList)){
+ const b=document.createElement('button');b.textContent=name;
+ b.onclick=()=>{filter=val;document.querySelectorAll('#filterGrid button').forEach(x=>x.classList.remove('primary'));b.classList.add('primary')};
+ $('filterGrid').appendChild(b);
+}
+document.querySelectorAll('.tools button').forEach(b=>b.onclick=()=>{
+ document.querySelectorAll('.tools button').forEach(x=>x.classList.remove('active'));b.classList.add('active');
+ document.querySelectorAll('.section').forEach(x=>x.classList.remove('active'));$(b.dataset.tab).classList.add('active');
+});
 
-function openSection(id,title){
- activeTab=id;
- document.querySelectorAll('.section').forEach(s=>s.classList.remove('active'));
- $(id).classList.add('active');
- const head=$('panelHead');
- if(id==='trim'){head.classList.remove('show')}else{head.classList.add('show');$('panelTitle').textContent=title||id}
- document.querySelectorAll('[data-tab]').forEach(x=>x.classList.toggle('active',x.dataset.tab===id));
+function setCanvas(){
+ if(!video.videoWidth)return;
+ canvas.width=video.videoWidth;canvas.height=video.videoHeight;
+ draw();
 }
-function backToEditor(){openSection('trim','Editor');}
-$('backToEditor').onclick=backToEditor;
-document.querySelectorAll('[data-tab]').forEach(b=>b.onclick=()=>openSection(b.dataset.tab,b.innerText.trim()));
-$('importBtn').onclick=()=>$('videoFile').click();
-$('videoFile').onchange=e=>{
- const files=[...(e.target.files||[])].filter(f=>f.type&&f.type.startsWith('video/'));
- if(!files.length){alert('Please select a valid video file.');return;}
- const wasEmpty=!clips.length;
- files.forEach(f=>{const url=URL.createObjectURL(f);const clip={file:f,url,name:f.name,duration:0};clips.push(clip);const probe=document.createElement('video');probe.preload='metadata';probe.src=url;probe.onloadedmetadata=()=>{clip.duration=Number.isFinite(probe.duration)?probe.duration:0;makeThumbs();};});
- e.target.value='';
- if(wasEmpty) loadClip(0); else {makeThumbs(); $('timelineStatus').textContent='Added '+files.length+' video • Total '+clips.length+' clips. Tap Play to preview the current clip.';}
-};
-function loadClip(index){
- if(index<0||index>=clips.length)return;
- currentClip=index; const clip=clips[index];
- video.pause();
- if(video._objectURL && video._objectURL!==clip.url){} // URLs are kept for all clips
- video.muted=false; video.defaultMuted=false; video.removeAttribute('muted'); video.volume=1;
- $('empty').style.display='block';$('empty').innerHTML='<strong>⏳ Loading video '+(index+1)+' / '+clips.length+'…</strong>'+clip.name;
- video.src=clip.url;video.preload='auto';video.load();
- let loaded=false;
- const ready=()=>{
-   if(loaded||!video.videoWidth||video.readyState<2)return;
-   loaded=true; clip.duration=Number.isFinite(video.duration)?video.duration:0; video.muted=false; video.defaultMuted=false; video.removeAttribute('muted'); video.volume=1; updateMuteButton(); startT=0;endT=Number.isFinite(video.duration)?video.duration:0;
-   $('start').max=endT;$('end').max=endT;$('start').value=0;$('end').value=endT;updateLabels();
-   const paint=()=>{try{draw();if(canvas.width&&canvas.height){$('empty').style.display='none';}}catch(err){$('empty').style.display='block';$('empty').innerHTML='<strong>⚠️ Preview error</strong>Try another MP4/H.264 video.';}};
-   if(video.currentTime!==0)video.currentTime=0; else paint();
-   video.addEventListener('seeked',paint,{once:true});requestAnimationFrame(paint);setTimeout(paint,150);setTimeout(paint,500);makeThumbs();
- };
- video.onloadedmetadata=ready;video.onloadeddata=ready;video.oncanplay=ready;
- video.onerror=()=>{$('empty').style.display='block';$('empty').innerHTML='<strong>⚠️ Video cannot be opened</strong>This browser/WebView may not support this codec.';};
- video.onplay=()=>loop();video.onpause=()=>cancelAnimationFrame(raf);
- video.onended=()=>{ if(currentClip<clips.length-1){loadClip(currentClip+1); setTimeout(()=>video.play().catch(()=>{}),180);} };
-}
-function loop(){draw();if(!video.paused)raf=requestAnimationFrame(loop)}
 function draw(){
- if(!video.videoWidth||video.readyState<2)return;
- ctx.setTransform(1,0,0,1,0,0);
- const srcW=video.videoWidth,srcH=video.videoHeight,srcRatio=srcW/srcH,targetRatio=ratios[aspectRatio]||srcRatio;
- let targetW=srcW,targetH=srcH;if(aspectRatio!=='Original'){if(srcRatio>targetRatio){targetH=srcH;targetW=Math.round(targetH*targetRatio)}else{targetW=srcW;targetH=Math.round(targetW/targetRatio)}}
- if(canvas.width!==targetW||canvas.height!==targetH){canvas.width=targetW;canvas.height=targetH;}
- let drawW,drawH;if(srcRatio>canvas.width/canvas.height){drawH=canvas.height;drawW=drawH*srcRatio}else{drawW=canvas.width;drawH=drawW/srcRatio}
- ctx.save();ctx.translate(canvas.width/2,canvas.height/2);ctx.rotate(rotation*Math.PI/180);ctx.scale(flip,1);
- const b=+$('bright').value,c=+$('contrast').value,s=+$('sat').value; const clarity=1+enhance/180; ctx.filter=`brightness(${b/100*clarity}) contrast(${c/100*(1+enhance/500)}) saturate(${s/100*(1+enhance/700)}) ${[filter,effect].filter(x=>x!=='none').join(' ')||''}`;
- let scale=1,tx=0,alpha=1,elapsed=(performance.now()-videoStart)/700*animSpeed; if(animation==='fade')alpha=Math.min(1,elapsed); if(animation==='zoomIn')scale=Math.max(.82,1.18-elapsed*.18); if(animation==='zoomOut')scale=Math.min(1.18,.82+elapsed*.18); if(animation==='slideLeft')tx=Math.max(-canvas.width*.15,canvas.width*(1-elapsed)); if(animation==='slideRight')tx=Math.min(canvas.width*.15,-canvas.width*(1-elapsed)); if(animation==='fadeOut')alpha=Math.max(0,1-Math.min(1,elapsed)); if(animation==='pulse')scale=1+Math.sin(elapsed*5)*.025; if(animation==='bounce')scale=1+Math.abs(Math.sin(elapsed*4))*.06; if(animation==='shake')tx=Math.sin(elapsed*18)*canvas.width*.018; if(animation==='spin')rotation+=0; if(animation==='flash')alpha=.65+.35*Math.abs(Math.sin(elapsed*8)); ctx.globalAlpha=alpha; if(animation==='spin')ctx.rotate(Math.min(elapsed,1)*Math.PI*2);ctx.scale(scale,scale);ctx.translate(tx,0);
- ctx.drawImage(video,-drawW/2,-drawH/2,drawW,drawH);ctx.globalAlpha=1;ctx.filter='none';
- if(enhance>35){ctx.globalAlpha=Math.min(.22,enhance/450);ctx.drawImage(canvas,-canvas.width/2,-canvas.height/2,canvas.width,canvas.height);ctx.globalAlpha=1}
- if(overlayText){const st=textStyles[textStyle];ctx.save();ctx.fillStyle=st.fill;ctx.strokeStyle=st.stroke;ctx.lineWidth=Math.max(4,canvas.width/220);ctx.font=Math.max(20,canvas.width*(textSize/1000))+'px '+textFont;ctx.textAlign='center';ctx.shadowColor=st.shadow?'rgba(0,0,0,.75)':'transparent';ctx.shadowBlur=st.shadow?16:0;let y=textY!==null?textY:(textPos==='top'?-canvas.height/2+80:textPos==='center'?0:canvas.height/2-45);let te=(performance.now()-videoStart)/350,ta=1,tsx=1,ttx=0,showText=overlayText;if(textAnimation==='Fade')ta=Math.min(1,te);if(textAnimation==='Pop')tsx=Math.min(1,0.7+te*.3);if(textAnimation==='Zoom')tsx=Math.min(1,0.45+te*.55);if(textAnimation==='Bounce')tsx=1+Math.abs(Math.sin(te*5))*0.08;if(textAnimation==='Slide Left')ttx=Math.max(0,canvas.width*(1-te));if(textAnimation==='Slide Right')ttx=Math.min(0,-canvas.width*(1-te));if(textAnimation==='Rise'){y+=Math.max(0,canvas.height*(1-te));}if(textAnimation==='Flicker')ta=.45+.55*Math.abs(Math.sin(te*8));if(textAnimation==='Typewriter'){showText=overlayText.slice(0,Math.max(1,Math.min(overlayText.length,Math.floor(te*8))));}ctx.globalAlpha=ta;ctx.translate(ttx,0);ctx.scale(tsx,tsx);ctx.fillStyle=textColor||st.fill;ctx.strokeText(showText,textX,y);ctx.fillText(showText,textX,y);ctx.restore()}
- if(sticker){ctx.save();ctx.translate(stickerX,stickerY*canvas.height);ctx.rotate(stickerRotation*Math.PI/180);const stickerFont=Math.max(35,canvas.width/9)*stickerScale;ctx.font=stickerFont+'px sans-serif';ctx.textAlign='center';ctx.textBaseline='middle';ctx.fillText(sticker,0,0);
-  if(activeTab==='sticker'){const r=Math.max(36,stickerFont*.55);ctx.save();ctx.rotate(-stickerRotation*Math.PI/180);ctx.strokeStyle='#a98aff';ctx.lineWidth=Math.max(2,canvas.width/500);ctx.setLineDash([8,6]);ctx.strokeRect(-r,-r,r*2,r*2);ctx.setLineDash([]);const hs=Math.max(7,canvas.width/90);for(const [hx,hy] of [[-r,-r],[r,-r],[-r,r],[r,r]]){ctx.fillStyle='#fff';ctx.strokeStyle='#8d5cff';ctx.lineWidth=3;ctx.beginPath();ctx.arc(hx,hy,hs,0,Math.PI*2);ctx.fill();ctx.stroke();}ctx.restore();}
-  ctx.restore()}
- ctx.restore();
- let p=video.duration?(video.currentTime/video.duration)*100:0;$('playhead').style.left=p+'%';$('time').textContent=formatDuration(video.currentTime)+' / '+formatDuration(video.duration||0)+' • '+formatDuration(totalKnownDuration())+' total';
+ if(!canvas.width)return;
+ const w=canvas.width,h=canvas.height;
+ ctx.clearRect(0,0,w,h);
+ ctx.save();
+ ctx.filter=`${filter} brightness(${brightness/100}) contrast(${contrast/100}) saturate(${saturation/100})`;
+ ctx.translate(w/2,h/2);ctx.rotate(rotation*Math.PI/180);ctx.scale(flipX,1);
+ const ratio=Math.min(w/video.videoWidth,h/video.videoHeight);
+ const vw=video.videoWidth*ratio,vh=video.videoHeight*ratio;
+ ctx.drawImage(video,-vw/2,-vh/2,vw,vh);ctx.restore();
+ if(overlayText){
+  ctx.save();ctx.font=`bold ${textSize}px Arial`;ctx.fillStyle=textColor;ctx.textAlign='center';
+  let y=textPos==='top'?textSize+30:textPos==='bottom'?h-35:h/2;
+  ctx.fillText(overlayText,w/2,y);ctx.restore();
+ }
+ if(sticker){ctx.save();ctx.font=`${Math.max(50,textSize*1.5)}px Arial`;ctx.textAlign='center';ctx.fillText(sticker,w/2,h*.72);ctx.restore();}
 }
-function updateLabels(){$('startV').textContent=Number($('start').value).toFixed(1)+'s';$('endV').textContent=Number($('end').value).toFixed(1)+'s'}
-$('start').oninput=e=>{if(+e.target.value>+$('end').value)e.target.value=$('end').value;startT=+e.target.value;updateLabels();video.currentTime=startT;draw()}
-$('end').oninput=e=>{if(+e.target.value<+$('start').value)e.target.value=$('start').value;endT=+e.target.value;updateLabels()}
-video.ontimeupdate=()=>{if(video.currentTime>=endT&&endT>0)video.pause();draw()}
-$('play').onclick=()=>{if(!video.src)return;if(video.currentTime<startT||video.currentTime>=endT)video.currentTime=startT;video.play()}
-$('stop').onclick=()=>{video.pause();video.currentTime=startT;draw()}
-$('bright').oninput=e=>{document.documentElement.style.setProperty('--x',e.target.value);$('brightV').textContent=e.target.value+'%';draw()}
-$('contrast').oninput=e=>{$('contrastV').textContent=e.target.value+'%';draw()}
-$('sat').oninput=e=>{$('satV').textContent=e.target.value+'%';draw()}
-
-const history=[];
-function snapshot(){history.push({filter,effect,rotation,flip,overlayText,sticker,bright:$('bright').value,contrast:$('contrast').value,sat:$('sat').value,speed:video.playbackRate});if(history.length>20)history.shift()}
-function undo(){const h=history.pop();if(!h)return;filter=h.filter;effect=h.effect;rotation=h.rotation;flip=h.flip;overlayText=h.overlayText;sticker=h.sticker;$('bright').value=h.bright;$('contrast').value=h.contrast;$('sat').value=h.sat;video.playbackRate=h.speed;$('textInput').value=overlayText;['bright','contrast','sat'].forEach(id=>$(id+'V').textContent=$(id).value+'%');draw()}
-$('undoBtn').onclick=undo;
-$('bright').oninput=e=>{snapshot();$('brightV').textContent=e.target.value+'%';draw()}
-$('contrast').oninput=e=>{snapshot();$('contrastV').textContent=e.target.value+'%';draw()}
-$('sat').oninput=e=>{snapshot();$('satV').textContent=e.target.value+'%';draw()}
-$('textInput').oninput=e=>{overlayText=e.target.value;draw();};
-$('addText').onclick=()=>{snapshot();overlayText=$('textInput').value;textY=null;textX=0;textPos='center';draw()}
-$('clearText').onclick=()=>{snapshot();overlayText='';$('textInput').value='';textY=null;textX=0;draw()}
-document.querySelectorAll('[data-speed]').forEach(b=>b.onclick=()=>{snapshot();video.playbackRate=+b.dataset.speed;document.querySelectorAll('[data-speed]').forEach(x=>x.classList.remove('active'));b.classList.add('active')});
-function updateMuteButton(){ $('mute').textContent=video.muted||video.volume===0?'🔇 Video Sound: OFF':'🔊 Video Sound: ON'; }
-$('volume').oninput=e=>{video.volume=+e.target.value;if(video.volume>0&&video.muted)video.muted=false;updateMuteButton()};
-$('mute').onclick=()=>{video.muted=!video.muted;updateMuteButton();};
-$('rotL').onclick=()=>{snapshot();rotation=(rotation+270)%360;draw()};$('rotR').onclick=()=>{snapshot();rotation=(rotation+90)%360;draw()};$('flip').onclick=()=>{snapshot();flip*=-1;draw()};
-$('reset').onclick=()=>{snapshot();filter='none';effect='none';rotation=0;flip=1;overlayText='';sticker='';stickerX=0;stickerY=.32;stickerScale=1;stickerRotation=0;textX=0;textY=null;textFont='Arial Black, sans-serif';textColor=null;textAnimation='None';$('textInput').value='';['bright','contrast','sat'].forEach(id=>$(id).value=100);$('brightV').textContent=$('contrastV').textContent=$('satV').textContent='100%';draw()};
-$('songBtn').onclick=()=>$('songFile').click();
-$('songFile').onchange=e=>{let f=e.target.files[0];if(!f)return;songURL=URL.createObjectURL(f);$('audio').src=songURL;$('songName').textContent='Selected: '+f.name;$('audio').play().catch(()=>{})};
-$('removeSong').onclick=()=>{$('audio').pause();$('audio').removeAttribute('src');$('songName').textContent='No song selected';songURL=''};
-$('modalSong').onclick=()=>$('songFile').click();$('closeModal').onclick=()=>$('modal').classList.remove('show');
-function formatDuration(sec){
- sec=Number(sec)||0; const m=Math.floor(sec/60), s=Math.floor(sec%60), h=Math.floor(m/60), mm=h?String(m%60).padStart(2,'0'):String(m); const ss=String(s).padStart(2,'0'); return h?h+':'+mm+':'+ss:mm+':'+ss;
+function loop(){
+ draw();$('timeText').textContent=`${video.currentTime.toFixed(1)} / ${video.duration?video.duration.toFixed(1):'0.0'}s`;
+ if(video.currentTime>=endT&&endT>startT){video.pause();video.currentTime=startT;}
+ if(!video.paused)drawRAF=requestAnimationFrame(loop);
 }
-function totalKnownDuration(){return clips.reduce((a,c)=>a+(Number(c.duration)||0),0)}
-function makeThumbs(){let t=$('track').querySelector('.thumbs');t.innerHTML='';const n=Math.max(1,clips.length);for(let i=0;i<n;i++){let d=document.createElement('div');d.className='thumb';d.title=clips[i]?.name||'Video '+(i+1);d.style.flex='1';d.style.opacity=i===currentClip?'1':'.55';d.onclick=ev=>{ev.stopPropagation();loadClip(i)};const dur=clips[i]?.duration?formatDuration(clips[i].duration):'…';d.innerHTML='<span>'+dur+'</span>';t.appendChild(d)}$('timelineStatus').textContent=clips.length?('Clip '+(currentClip+1)+' / '+clips.length+' • '+formatDuration(clips[currentClip].duration||video.duration||0)+' • Total '+formatDuration(totalKnownDuration())+' • '+clips[currentClip].name):'Ready • Add one or more videos.'}
-$('track').onclick=e=>{if(!video.duration)return;const r=$('track').getBoundingClientRect();video.currentTime=Math.max(startT,Math.min(endT||video.duration,(e.clientX-r.left)/r.width*video.duration));draw()};
-
-
-$('stickerSize').oninput=e=>{stickerScale=+e.target.value/100;$('stickerSizeV').textContent=e.target.value+'%';draw()};
-$('stickerRotate').oninput=e=>{stickerRotation=+e.target.value;$('stickerRotateV').textContent=e.target.value+'°';draw()};
-$('centerSticker').onclick=()=>{stickerX=0;stickerY=0;draw()};
-$('removeSticker').onclick=()=>{snapshot();sticker='';draw()};
-function canvasPoint(e){const r=canvas.getBoundingClientRect();return {x:(e.clientX-r.left)/r.width*canvas.width-canvas.width/2,y:(e.clientY-r.top)/r.height*canvas.height-canvas.height/2}}
-function updateGestureControls(){ $('stickerSize').value=Math.round(stickerScale*100);$('stickerSizeV').textContent=Math.round(stickerScale*100)+'%';$('stickerRotate').value=Math.round(stickerRotation);$('stickerRotateV').textContent=Math.round(stickerRotation)+'°'; }
-function twoPoints(){return [...gesturePointers.values()]}
-canvas.style.touchAction='none';
-canvas.addEventListener('pointerdown',e=>{if(!video.src)return;canvas.setPointerCapture(e.pointerId);gesturePointers.set(e.pointerId,canvasPoint(e));
- if(sticker && gesturePointers.size===2){const [a,b]=twoPoints();pinchStart={dist:Math.hypot(b.x-a.x,b.y-a.y),angle:Math.atan2(b.y-a.y,b.x-a.x),scale:stickerScale,rotation:stickerRotation};dragMode='pinch';snapshot();e.preventDefault();return;}
- const p=canvasPoint(e);const sx=stickerX,sy=stickerY*canvas.height; if(sticker && Math.hypot(p.x-sx,p.y-sy)<Math.max(80,canvas.width/6)*stickerScale){dragMode='sticker';}else if(overlayText){dragMode='text';}if(dragMode)e.preventDefault();});
-canvas.addEventListener('pointermove',e=>{if(!gesturePointers.has(e.pointerId))return;gesturePointers.set(e.pointerId,canvasPoint(e));
- if(dragMode==='pinch'&&gesturePointers.size>=2&&pinchStart){const [a,b]=twoPoints();const dist=Math.max(1,Math.hypot(b.x-a.x,b.y-a.y));const angle=Math.atan2(b.y-a.y,b.x-a.x);stickerScale=Math.max(.25,Math.min(3.5,pinchStart.scale*(dist/pinchStart.dist)));stickerRotation=pinchStart.rotation+(angle-pinchStart.angle)*180/Math.PI;updateGestureControls();draw();e.preventDefault();return;}
- if(!dragMode)return;const p=canvasPoint(e);if(dragMode==='sticker'){stickerX=Math.max(-canvas.width/2,Math.min(canvas.width/2,p.x));stickerY=Math.max(-.5,Math.min(.5,p.y/canvas.height));}else if(dragMode==='text'){textX=Math.max(-canvas.width/2,Math.min(canvas.width/2,p.x));textY=Math.max(-canvas.height/2+30,Math.min(canvas.height/2-30,p.y));}draw();e.preventDefault();});
-function endPointer(e){gesturePointers.delete(e.pointerId);if(gesturePointers.size<2)pinchStart=null;if(gesturePointers.size===1&&dragMode==='pinch')dragMode='sticker';if(!gesturePointers.size)dragMode=null;draw()}
-canvas.addEventListener('pointerup',endPointer);canvas.addEventListener('pointercancel',endPointer);
-
-$('enhanceRange').oninput=e=>{enhance=+e.target.value;$('enhanceV').textContent=enhance+'%';draw()};$('enhanceAuto').onclick=()=>{enhance=75;$('enhanceRange').value=75;$('enhanceV').textContent='75%';draw()};$('enhanceOff').onclick=()=>{enhance=0;$('enhanceRange').value=0;$('enhanceV').textContent='0%';draw()};$('animSpeed').oninput=e=>{animSpeed=+e.target.value;$('animSpeedV').textContent=animSpeed.toFixed(1)+'×';videoStart=performance.now();draw()};
-function setTextSize(v){textSize=Math.max(20,Math.min(220,+v));$('textSizeText').value=textSize;$('textSizeTextV').textContent=textSize+'px';draw()}
-$('textSizeText').oninput=e=>setTextSize(e.target.value);
-$('textSmall').onclick=()=>setTextSize(textSize-10);$('textBig').onclick=()=>setTextSize(textSize+10);
-document.querySelectorAll('[data-textpos]').forEach(b=>b.onclick=()=>{textPos=b.dataset.textpos;textY=null;document.querySelectorAll('[data-textpos]').forEach(x=>x.classList.remove('primary'));b.classList.add('primary');draw()});
-
-
-// V22 reliable export: render into a separate canvas so the editor preview never breaks.
-let exportRes=720, exporting=false, exportRaf=0;
-let lastExportBlob=null,lastExportUrl='',lastExportName='';
-let exportAudioCtx=null, exportAudioSource=null;
-document.querySelectorAll('[data-export-res]').forEach(b=>b.onclick=()=>{exportRes=+b.dataset.exportRes;document.querySelectorAll('[data-export-res]').forEach(x=>x.classList.remove('primary'));b.classList.add('primary')});
-$('exportBtn').onclick=()=>openSection('export','⬇ Export & Save');
-function bestMime(){
- const types=['video/webm;codecs=vp9','video/webm;codecs=vp8','video/webm'];
- return types.find(t=>!MediaRecorder.isTypeSupported||MediaRecorder.isTypeSupported(t))||'';
-}
-function exportSize(ratio){
- let h=exportRes===2160?2160:exportRes===1080?1080:720;
- let w=Math.round(h*ratio);
- if(exportRes===2160)w=Math.min(3840,w); else w=Math.min(1920,w);
- w=Math.max(2,w-(w%2)); h=Math.max(2,h-(h%2));
- return {w,h};
-}
-function setExportFile(blob,name){
- if(lastExportUrl)URL.revokeObjectURL(lastExportUrl);
- lastExportBlob=blob;lastExportName=name;lastExportUrl=URL.createObjectURL(blob);
- const a=$('downloadLink');a.href=lastExportUrl;a.download=lastExportName;a.target='_blank';a.rel='noopener';
- $('saveResult').style.display='block';
-}
-function triggerSave(){
- if(!lastExportUrl)return false;
- const a=document.createElement('a');
- a.href=lastExportUrl;a.download=lastExportName;a.rel='noopener';
- a.style.position='fixed';a.style.left='-9999px';
- document.body.appendChild(a);
- try{a.click();}catch(e){}
- setTimeout(()=>a.remove(),1200);
- return true;
-}
-async function saveOrShare(){
- if(!lastExportBlob){alert('Export the video first.');return;}
- const file=new File([lastExportBlob],lastExportName,{type:lastExportBlob.type||'video/webm'});
- try{
-  if(navigator.share&&(!navigator.canShare||navigator.canShare({files:[file]}))){
-   $('exportStatus').textContent='Opening Android Save/Share…';
-   await navigator.share({title:'VizoCut Video',files:[file]});
-   $('exportStatus').textContent='Save/Share closed ✓ Check Files or Downloads.';
-   return;
-  }
- }catch(e){ if(e&&e.name==='AbortError'){ $('exportStatus').textContent='Save cancelled.'; return; } }
- triggerSave();
- $('exportStatus').textContent='Download requested ✓ Check Downloads. If blocked, tap the link below.';
-}
-$('saveVideoBtn').onclick=saveOrShare;
-$('shareVideoBtn').onclick=async()=>{
- if(!lastExportBlob){alert('Export the video first.');return;}
- try{
-  const file=new File([lastExportBlob],lastExportName,{type:lastExportBlob.type||'video/webm'});
-  if(navigator.share&&(!navigator.canShare||navigator.canShare({files:[file]}))){await navigator.share({title:'VizoCut Video',files:[file]});$('exportStatus').textContent='Share opened ✓ Choose Files or another app to save the video.';}
-  else {triggerSave();$('exportStatus').textContent='Share is unavailable. Download was requested.';}
- }catch(e){if(e&&e.name!=='AbortError')$('exportStatus').textContent='Share failed. Tap Save Video again.';}
+$('videoFile').onchange=e=>{
+ const f=e.target.files[0];if(!f)return;
+ video.src=URL.createObjectURL(f);video.load();
+ video.onloadedmetadata=()=>{
+  $('empty').style.display='none';setCanvas();startT=0;endT=video.duration;
+  ['start','end'].forEach(id=>{$(id).max=video.duration});
+  $('end').value=video.duration;$('startText').textContent='0.0s';$('endText').textContent=endT.toFixed(1)+'s';
+ };
 };
-function addExportAudio(stream){
- // Best option: capture the video's original audio track.
- try{
-  const vs=video.captureStream?video.captureStream():video.mozCaptureStream?video.mozCaptureStream():null;
-  if(vs&&vs.getAudioTracks&&vs.getAudioTracks().length){stream.addTrack(vs.getAudioTracks()[0]);return;}
- }catch(e){}
- // Fallback: WebAudio creates a recordable audio track in browsers that allow it.
- try{
-  const AC=window.AudioContext||window.webkitAudioContext;if(!AC)return;
-  if(!exportAudioCtx){
-   exportAudioCtx=new AC();exportAudioSource=exportAudioCtx.createMediaElementSource(video);
-  }
-  const dest=exportAudioCtx.createMediaStreamDestination();exportAudioSource.connect(dest);
-  if(exportAudioCtx.state==='suspended')exportAudioCtx.resume();
-  if(dest.stream.getAudioTracks().length)stream.addTrack(dest.stream.getAudioTracks()[0]);
- }catch(e){}
-}
-function renderEditedFrame(target,targetCtx){
- if(!video.videoWidth||video.readyState<2)return;
- const srcW=video.videoWidth,srcH=video.videoHeight,srcRatio=srcW/srcH,targetRatio=ratios[aspectRatio]||srcRatio;
- let outW=target.width,outH=target.height;
- let drawW,drawH;if(srcRatio>outW/outH){drawH=outH;drawW=drawH*srcRatio}else{drawW=outW;drawH=drawW/srcRatio}
- targetCtx.setTransform(1,0,0,1,0,0);targetCtx.clearRect(0,0,outW,outH);targetCtx.fillStyle='#000';targetCtx.fillRect(0,0,outW,outH);
- targetCtx.save();targetCtx.translate(outW/2,outH/2);targetCtx.rotate(rotation*Math.PI/180);targetCtx.scale(flip,1);
- const b=+$('bright').value,c=+$('contrast').value,sat=+$('sat').value,clarity=1+enhance/180;
- targetCtx.filter=`brightness(${b/100*clarity}) contrast(${c/100*(1+enhance/500)}) saturate(${sat/100*(1+enhance/700)}) ${[filter,effect].filter(x=>x!=='none').join(' ')||''}`;
- let scale=1,tx=0,alpha=1,elapsed=(performance.now()-videoStart)/700*animSpeed;
- if(animation==='fade')alpha=Math.min(1,elapsed);if(animation==='zoomIn')scale=Math.max(.82,1.18-elapsed*.18);if(animation==='zoomOut')scale=Math.min(1.18,.82+elapsed*.18);if(animation==='slideLeft')tx=Math.max(-outW*.15,outW*(1-elapsed));if(animation==='slideRight')tx=Math.min(outW*.15,-outW*(1-elapsed));if(animation==='fadeOut')alpha=Math.max(0,1-Math.min(1,elapsed));if(animation==='pulse')scale=1+Math.sin(elapsed*5)*.025;if(animation==='bounce')scale=1+Math.abs(Math.sin(elapsed*4))*.06;if(animation==='shake')tx=Math.sin(elapsed*18)*outW*.018;if(animation==='flash')alpha=.65+.35*Math.abs(Math.sin(elapsed*8));
- targetCtx.globalAlpha=alpha;if(animation==='spin')targetCtx.rotate(Math.min(elapsed,1)*Math.PI*2);targetCtx.scale(scale,scale);targetCtx.translate(tx,0);targetCtx.drawImage(video,-drawW/2,-drawH/2,drawW,drawH);targetCtx.restore();
- targetCtx.filter='none';targetCtx.globalAlpha=1;
- if(overlayText){const st=textStyles[textStyle];targetCtx.save();targetCtx.fillStyle=textColor||st.fill;targetCtx.strokeStyle=st.stroke;targetCtx.lineWidth=Math.max(4,outW/220);targetCtx.font=Math.max(20,outW*(textSize/1000))+'px '+textFont;targetCtx.textAlign='center';targetCtx.shadowColor=st.shadow?'rgba(0,0,0,.75)':'transparent';targetCtx.shadowBlur=st.shadow?16:0;let y=textY!==null?textY*(outH/(canvas.height||outH)):(textPos==='top'?-outH/2+80:textPos==='center'?0:outH/2-45);let te=(performance.now()-videoStart)/350,ta=1,tsx=1,ttx=0,showText=overlayText;if(textAnimation==='Fade')ta=Math.min(1,te);if(textAnimation==='Pop')tsx=Math.min(1,.7+te*.3);if(textAnimation==='Zoom')tsx=Math.min(1,.45+te*.55);if(textAnimation==='Bounce')tsx=1+Math.abs(Math.sin(te*5))*.08;if(textAnimation==='Slide Left')ttx=Math.max(0,outW*(1-te));if(textAnimation==='Slide Right')ttx=Math.min(0,-outW*(1-te));if(textAnimation==='Rise')y+=Math.max(0,outH*(1-te));if(textAnimation==='Flicker')ta=.45+.55*Math.abs(Math.sin(te*8));if(textAnimation==='Typewriter')showText=overlayText.slice(0,Math.max(1,Math.min(overlayText.length,Math.floor(te*8))));targetCtx.globalAlpha=ta;targetCtx.translate(ttx,0);targetCtx.scale(tsx,tsx);targetCtx.strokeText(showText,textX*(outW/(canvas.width||outW)),y);targetCtx.fillText(showText,textX*(outW/(canvas.width||outW)),y);targetCtx.restore();}
- if(sticker){targetCtx.save();targetCtx.translate(stickerX*(outW/(canvas.width||outW)),stickerY*outH);targetCtx.rotate(stickerRotation*Math.PI/180);targetCtx.font=(Math.max(35,outW/9)*stickerScale)+'px sans-serif';targetCtx.textAlign='center';targetCtx.textBaseline='middle';targetCtx.fillText(sticker,0,0);targetCtx.restore();}
-}
-async function runExport(){
- if(!video.src||exporting){if(!video.src)alert('Please add a video first.');return;}
- if(!window.MediaRecorder||!HTMLCanvasElement.prototype.captureStream){$('exportStatus').textContent='This WebView cannot export. Open in Chrome or a WebView with MediaRecorder support.';return;}
- if(video.readyState<2||!video.videoWidth){$('exportStatus').textContent='Video is loading. Wait for preview, then Export.';return;}
- const duration=Number.isFinite(video.duration)?video.duration:0;if(duration<=0){$('exportStatus').textContent='Video duration is not ready yet. Wait for the video to load.';return;}
- exporting=true;$('saveResult').style.display='none';$('startExport').disabled=true;$('exportStatus').textContent='Preparing edited video… 0%';
- const ratio=ratios[aspectRatio]||video.videoWidth/video.videoHeight,size=exportSize(ratio);
- const exportCanvas=document.createElement('canvas');exportCanvas.width=size.w;exportCanvas.height=size.h;
- const exportCtx=exportCanvas.getContext('2d',{alpha:false});
- let rec,stream,chunks=[],timer=null,frameTimer=null,watchdog=null,finished=false,stopping=false;
- const startAt=Math.max(0,Math.min(Math.max(0,duration-.02),Number($('start').value)||0));
- const endAt=Math.max(startAt+.08,Math.min(duration,Number(endT)||duration));
- const oldMuted=video.muted;
- const restore=()=>{clearInterval(timer);clearInterval(frameTimer);clearTimeout(watchdog);try{stream&&stream.getTracks().forEach(t=>t.stop())}catch(e){}video.muted=oldMuted;exporting=false;$('startExport').disabled=false;draw();};
- const fail=m=>{$('exportStatus').textContent=m;restore();};
- try{
-  video.pause();video.currentTime=startAt;
-  await new Promise(resolve=>{let done=false;const ok=()=>{if(!done){done=true;resolve();}};video.addEventListener('seeked',ok,{once:true});setTimeout(ok,1800);});
-  renderEditedFrame(exportCanvas,exportCtx);
-  stream=exportCanvas.captureStream(30);addExportAudio(stream);
-  const mime=bestMime();const opts={videoBitsPerSecond:(+$('exportQuality').value||8)*1000000};if(mime)opts.mimeType=mime;
-  try{rec=new MediaRecorder(stream,opts)}catch(e){rec=new MediaRecorder(stream)}
-  rec.ondataavailable=e=>{if(e.data&&e.data.size>0)chunks.push(e.data)};
-  rec.onerror=()=>fail('Export error. Try 720p.');
-  rec.onstop=()=>{
-    const blob=new Blob(chunks,{type:rec.mimeType||mime||'video/webm'});
-    if(blob.size<1500){fail('Export failed: video data was empty. Try again after preview loads.');return;}
-    setExportFile(blob,`VizoCut_${exportRes===2160?'4K':exportRes+'p'}_edited.webm`);
-    $('exportStatus').textContent='Export complete ✓ Duration: '+formatDuration(Math.max(0,endAt-startAt))+' • Tap Save Video.';
-    restore();
-  };
-  const finish=()=>{
-    if(finished||stopping)return;finished=true;stopping=true;
-    video.pause();clearInterval(frameTimer);clearInterval(timer);clearTimeout(watchdog);
-    // Force the final frame and flush recorder data before stopping.
-    renderEditedFrame(exportCanvas,exportCtx);
-    setTimeout(()=>{try{if(rec.state==='recording'){try{rec.requestData()}catch(e){}setTimeout(()=>{try{rec.stop()}catch(e){fail('Could not finish export.')}},250)}}catch(e){fail('Could not finish export.')}},250);
-  };
-  rec.start(200);
-  video.muted=true;videoStart=performance.now();
-  await video.play();
-  // setInterval keeps rendering in Android WebView even when requestAnimationFrame is throttled.
-  frameTimer=setInterval(()=>{
-    if(!exporting||finished)return;
-    renderEditedFrame(exportCanvas,exportCtx);
-    if(video.currentTime>=endAt-.01||video.ended)finish();
-  },33);
-  timer=setInterval(()=>{const p=Math.max(0,Math.min(99,((video.currentTime-startAt)/Math.max(.01,endAt-startAt))*100));$('exportStatus').textContent='Exporting edited video… '+Math.round(p)+'%';},200);
-  watchdog=setTimeout(()=>finish(),Math.max(15000,(endAt-startAt)*4000+10000));
- }catch(e){console.error(e);fail('Export could not start. Try 720p after the video preview loads.');}
-}
-// V24: export/save fallback for Android WebView and Chrome.
-const exportButton=$('startExport');
-$('downloadLink').addEventListener('click',()=>{$('exportStatus').textContent='Opening exported video… If download does not start, use the browser menu to download/save it.';});
-exportButton.addEventListener('click', function(e){ e.preventDefault(); e.stopPropagation(); runExport(); }, false);
-exportButton.addEventListener('touchend', function(e){ e.preventDefault(); e.stopPropagation(); runExport(); }, {passive:false});
-exportButton.addEventListener('pointerup', function(e){ if(e.pointerType==='touch') return; }, false);
-window.addEventListener('beforeunload',()=>{if(lastExportUrl)URL.revokeObjectURL(lastExportUrl)});
+$('play').onclick=async()=>{if(!video.src)return alert('First add a video');if(video.currentTime<startT||video.currentTime>=endT)video.currentTime=startT;try{await video.play();cancelAnimationFrame(drawRAF);loop()}catch(e){alert('Video play failed: '+e.message)}};
+$('pause').onclick=()=>video.pause();
+$('stop').onclick=()=>{video.pause();video.currentTime=startT;draw()};
+$('start').oninput=e=>{startT=+e.target.value;if(startT>endT){startT=endT;e.target.value=endT}$('startText').textContent=startT.toFixed(1)+'s'};
+$('end').oninput=e=>{endT=+e.target.value;if(endT<startT){endT=startT;e.target.value=startT}$('endText').textContent=endT.toFixed(1)+'s'};
+$('textInput').oninput=e=>{overlayText=e.target.value;draw()};
+$('textSize').oninput=e=>{textSize=+e.target.value;$('sizeText').textContent=textSize;draw()};
+document.querySelectorAll('[data-pos]').forEach(b=>b.onclick=()=>{textPos=b.dataset.pos;draw()});
+$('textWhite').onclick=()=>{textColor='#fff';draw()};$('textYellow').onclick=()=>{textColor='#ffd93d';draw()};
+$('clearText').onclick=()=>{overlayText='';$('textInput').value='';draw()};
+document.querySelectorAll('[data-sticker]').forEach(b=>b.onclick=()=>{sticker=b.dataset.sticker;draw()});
+$('clearSticker').onclick=()=>{sticker='';draw()};
+function adj(id,varName,textId){$(id).oninput=e=>{window[varName]=+e.target.value;eval(varName+'='+window[varName]);$(textId).textContent=e.target.value+'%';draw()}}
+$('brightness').oninput=e=>{brightness=+e.target.value;$('brightText').textContent=brightness+'%';draw()};
+$('contrast').oninput=e=>{contrast=+e.target.value;$('contrastText').textContent=contrast+'%';draw()};
+$('saturation').oninput=e=>{saturation=+e.target.value;$('satText').textContent=saturation+'%';draw()};
+$('rotateL').onclick=()=>{rotation=(rotation-90)%360;draw()};
+$('rotateR').onclick=()=>{rotation=(rotation+90)%360;draw()};
+$('flip').onclick=()=>{flipX*=-1;draw()};
+$('reset').onclick=()=>{rotation=0;flipX=1;filter='none';brightness=contrast=saturation=100;draw()};
+$('export720').onclick=()=>{exportHeight=720;$('exportStatus').textContent='720p selected'};
+$('export480').onclick=()=>{exportHeight=480;$('exportStatus').textContent='480p selected'};
 
-// Prevent accidental copying of app labels while keeping text input editable.
-document.addEventListener('copy',e=>{const el=document.activeElement;if(el&&(/^(INPUT|TEXTAREA)$/).test(el.tagName))return;e.preventDefault();});
-document.addEventListener('contextmenu',e=>{if(!e.target.matches('input,textarea'))e.preventDefault();});
-
+async function exportVideo(){
+ if(!video.src)return alert('First add a video');
+ if(!window.MediaRecorder||!canvas.captureStream){
+  $('exportStatus').textContent='Export is not supported by this WebView. Open this HTML in Chrome or use a WebView with MediaRecorder support.';
+  return;
+ }
+ $('exportStatus').textContent='Preparing export...';
+ const oldW=canvas.width,oldH=canvas.height,oldTime=video.currentTime,wasPaused=video.paused;
+ const aspect=video.videoWidth/video.videoHeight;
+ canvas.height=exportHeight;canvas.width=Math.round(exportHeight*aspect);
+ const stream=canvas.captureStream(30);
+ let mime='';
+ for(const m of ['video/webm;codecs=vp9','video/webm;codecs=vp8','video/webm'])if(MediaRecorder.isTypeSupported(m)){mime=m;break}
+ let rec;try{rec=new MediaRecorder(stream,mime?{mimeType:mime,videoBitsPerSecond:4000000}:undefined)}catch(e){$('exportStatus').textContent='Export error: '+e.message;return}
+ const chunks=[];rec.ondataavailable=e=>{if(e.data.size)chunks.push(e.data)};
+ rec.onstop=()=>{
+  const blob=new Blob(chunks,{type:mime||'video/webm'}),url=URL.createObjectURL(blob);
+  const a=document.createElement('a');a.href=url;a.download='VizoCut_edited.webm';a.textContent='Download VizoCut Video';
+  a.style.display='block';a.style.marginTop='12px';a.style.color='#b99cff';a.style.fontWeight='bold';
+  $('exportStatus').innerHTML='Export complete ✓';$('exportStatus').appendChild(a);
+  canvas.width=oldW;canvas.height=oldH;video.currentTime=oldTime;draw();
+ };
+ rec.start(1000);video.currentTime=startT;
+ try{await video.play()}catch(e){rec.stop();$('exportStatus').textContent='Cannot start export: '+e.message;return}
+ const render=()=>{
+  draw();
+  if(video.currentTime>=endT||video.ended){video.pause();rec.stop();return}
+  requestAnimationFrame(render);
+ };
+ requestAnimationFrame(render);
+}
+$('startExport').onclick=exportVideo;$('exportBtn').onclick=exportVideo;
 </script>
 </body>
 </html>
